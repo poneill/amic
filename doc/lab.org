@@ -14,8 +14,7 @@
   indicate that there is a question to be answered.
 
 * Preliminaries
-  Download this repository from =github.com/poneill/xxx=.  Explore the
-  code interactively by typing:
+  Explore the code interactively by typing:
 
 : $ python -i lab.py
 
