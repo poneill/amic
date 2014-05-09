@@ -24,8 +24,8 @@ def mh(p,proposal,x0,iterations=50000,use_log=False,verbose=0):
     xs: the chain of tuples of the form (x,p(x)).
     """
     x = x0
-    xs = [x]
     px = p(x)
+    xs = [(x,px)]
     px_string = "p(x)" if not use_log else "log(p(x))"
     acceptances = 0
     for i in xrange(1,iterations+1):
