@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>lab</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="lab"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2014-05-09T08:44-0400"/>
+<meta name="author" content="pat"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js">
+/**
+ *
+ * @source: http://orgmode.org/mathjax/MathJax.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in http://orgmode.org/mathjax/MathJax.js.
+ *
+ * Copyright (C) 2012-2013  MathJax
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in http://orgmode.org/mathjax/MathJax.js.
+ *
+ */
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code below.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code below is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code below.
+*/
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">lab</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Overview</a></li>
+<li><a href="#sec-2">2 Preliminaries</a></li>
+<li><a href="#sec-3">3 <code>data.py</code></a></li>
+<li><a href="#sec-4">4 <code>energy_matrix.py</code></a></li>
+<li><a href="#sec-5">5 <code>metropolis_hastings.py</code></a></li>
+<li><a href="#sec-6">6 <code>simulate_tf.py</code></a></li>
+<li><a href="#sec-7">7 <code>chip_seq.py</code></a></li>
+<li><a href="#sec-8">8 <code>inference.py</code></a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Overview</h2>
+<div class="outline-text-2" id="text-1">
+
+<p>  In this lab we'll apply the Metropolis-Hastings algorithm to a
+  synthetic ChIP-Seq dataset in order to recover a model of the
+  DNA-binding domain of our synthetic transcription factor (TF).  Gray
+  boxes with text
+</p>
+<pre class="example">
+like this
+</pre>
+
+
+<p>
+  represent commands to be typed.  Empty gray boxes like:
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  indicate that there is a question to be answered.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Preliminaries</h2>
+<div class="outline-text-2" id="text-2">
+
+<p>  Download this repository from <code>github.com/poneill/xxx</code>.  Explore the
+  code interactively by typing:
+</p>
+<pre class="example">
+$ python -i lab.py
+</pre>
+
+
+<p>
+  or open the file in emacs and send the buffer to a python REPL using
+  <code>M-x python-shell-send-buffer</code> (or equivalent).  This is just a
+  convenience file that imports data and functions defined in other
+  files.  All of the code in this lab is contained in the <code>lab.py</code>
+  namespace, but you may wish to open the other files to examine the
+  code, poke around and see what's going on.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> <code>data.py</code></h2>
+<div class="outline-text-2" id="text-3">
+
+<p>The script first imports the contents of <code>data.py</code>: let's see what's
+defined there.
+</p>
+<p>
+Inspect the variable <code>TRUE_ENERGY_MATRIX</code>.  You can use the
+pretty-print function (<code>pprint</code>) to display it more clearly.  
+</p>
+<p>
+What is the width of the site that the true binding model recognizes?
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+What is the length of the <code>GENOME</code>?
+</p>
+<pre class="example">
+
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> <code>energy_matrix.py</code></h2>
+<div class="outline-text-2" id="text-4">
+
+
+<p>
+  This file contains some functions related to energy matrices and their use.
+</p>
+<p>
+  The most important function in this file is <code>score</code>, which computes
+  the score of <code>sequence</code> with respect to an <code>energy_matrix</code>.  Try
+  computing the scores of various strings under the
+  <code>TRUE_ENERGY_MATRIX</code>.  Remember that the scores have dimensions of
+  \(\Delta G\), so lower scores represent stronger binding sites.  In
+  our toy model, what is our TF looking for?  Inspect the energy
+  matrix directly or experiment with various strings, for example:
+</p>
+<pre class="example">
+&gt;&gt;&gt; score(TRUE_ENERGY_MATRIX,"ACGATGACGT")
+</pre>
+
+
+<p>
+ in order to describe the motif that the TF binds:
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  Notice also the function <code>score_genome</code>, which scores the entire
+  genome at once.  In this toy model, we consider the genome to be
+  linearized, rather than circular, and consider binding only in the
+  5'-3' direction: we neglect the complementary strand.  Define the
+  following variable:
+</p>
+<pre class="example">
+&gt;&gt;&gt; scores = score_genome(TRUE_ENERGY_MATRIX,GENOME)
+</pre>
+
+
+<p>
+  What is the relationship between <code>scores</code> and <code>GENOME</code>?  Draw a
+  diagram that explains this relationship.
+</p>
+<pre class="example">
+
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> <code>metropolis_hastings.py</code></h2>
+<div class="outline-text-2" id="text-5">
+
+
+<p>
+  This file contains an implementation of the Metropolis-Hastings
+  algorithm, with one crucial simplification.  What is the difference
+  between the implementation given here, and the algorithm described
+  on Wednesday?  (Hint: it is not the <code>use_log</code> option, which is just a
+  numerical convenience).  How does it restrict our use of the <code>mh</code>
+  function?
+</p>
+<pre class="example">
+
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> <code>simulate_tf.py</code></h2>
+<div class="outline-text-2" id="text-6">
+
+
+<p>
+  This file contains functions for simulating the behavior of the tf
+  on the chromosome, in two ways.  The first method, <code>simulate</code>,
+  reports the position of the TF when simulated via the M-H algorithm.
+</p>
+<p>
+  If only a single copy of the TF is present within the cell, as we
+  will assume, the occupation probability for a site with binding
+  energy \(s_i\) is given by \(\frac{exp(-\beta s_i)}{Z}\), where
+  \(Z=\sum_i exp(-\beta s_i)\) is the sum of the expression in the
+  numerator over all sites, and we choose units such that \(\beta=1\).
+</p>
+<p>
+  Note that in the inner function <code>binding_probability</code>, this
+  expression is defined only up to a constant&ndash; the M-H algorithm
+  allows us to neglect the computation of \(Z\), which is convenient
+  when the genome is large and there are many possible binding sites.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> <code>chip_seq.py</code></h2>
+<div class="outline-text-2" id="text-7">
+
+
+<p>
+  This file implements the simulation of ChIP-seq datasets.  For as
+  many fragments as desired, we first sample the position of the TF on
+  the chromosome according to its binding distribution.  We then
+  sample the length of the fragment which contains the position where
+  the TF is bound, according to a Poisson distribution with fixed
+  <code>MEAN_FRAGMENT_LENGTH</code>.  Finally, we sample the displacement of the
+  left endpoint of the fragment from the binding site, which is
+  uniformly distributed within the fragment.  This is mathematically
+  equivalent to the more physically faithful process of fixing the
+  position of the TF, fragmenting the genome randomly and picking the
+  fragment which contains the bound position, but more efficient.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> <code>inference.py</code></h2>
+<div class="outline-text-2" id="text-8">
+
+
+<p>
+  Now we arrive at the central problem: suppose we are given a
+  ChIP-seq dataset, and we wish to make an inference about the binding
+  matrix which gave rise to it.  Formally, we want to sample from the
+  posterior probability P(M|D) over matrices M, given data D.  
+</p>
+<p>
+  Use Bayes' theorem in order to write P(M|D) in terms of the
+  likelihood P(D|M) and the prior probability P(M):
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  Now assume the prior P(M) is uniform, and assume a likelihood
+  function of the form given on Wednesday.  Show that, if the
+  likelihood function only interacts with our sampling algorithm
+  through the ratio \(\frac{P(D|H_i)}{P(D|H_j)}\), we can simplify the
+  resulting expression.  Rewrite the new likelihood function in its
+  simplified form and explain in your own words what is going on:
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  Now we are ready to sample matrices from the posterior distribution
+  P(M|D).  Use the function <code>sample_posterior</code> as follows:
+</p>
+<pre class="example">
+&gt;&gt;&gt; matrix_chain, fragments = sample_posterior()
+</pre>
+
+
+<p>
+  The return values are a <code>matrix_chain</code>, consisting of pairs of
+  matrices and their associated log-likelihood values <code>(m,logf(m))</code>,
+  and the set of fragments used to compute the log-likelihood.
+  Compare the resulting log-likelihoods to the log-likelihood of the
+  <code>TRUE_ENERGY_MATRIX</code>, which is printed to <code>stdout</code> when
+  <code>sample_posterior</code> runs.  Are they comparable?
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  We saw on Wednesday that the proposal distribution often contains a
+  tuning parameter which controls the correlation between the proposed
+  and current states.  Often, the performance of MCMC algorithms is
+  sensitive to such parameters.  Here, the tuning parameter is
+  <code>sigma</code>, which controls the standard deviation of the Gaussian
+  random variable which is added to a random component of the current
+  energy matrix at each step.  Try varying sigma.  This can be done by
+  typing, e.g.,:
+</p>
+<pre class="example">
+&gt;&gt;&gt; chain(sigma=1,fragments=fragments)
+</pre>
+
+
+<p>
+  at the REPL.  (We pass <code>fragment</code> back in as an argument so that we
+  do not regenerate a new set of fragments on the fly, potentially
+  invalidating the comparison.) How does the performance of the
+  algorithm depend on <code>sigma</code>?  What seems to give the fastest
+  approach to high-probability regions of the posterior distribution?
+  How is the acceptance efficiency affected?
+</p>
+<pre class="example">
+
+</pre>
+
+
+<p>
+  Find the posterior mode of the chain, that is, the matrix with the
+  highest posterior probability.  This can be done with the following command:
+</p>
+<pre class="example">
+&gt;&gt;&gt; post_mode = max(matrix_chain,key=lambda (m,pm):pm)
+</pre>
+
+
+<p>
+  and examine the matrix visually (you may find <code>pprint</code> helpful again
+  here).  What similarities, if any, do you see between the 'best'
+  matrix in the chain and the true energy matrix?  What differences?
+</p>
+<pre class="example">
+
+</pre>
+
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2014-05-09T08:44-0400</p>
+<p class="author">Author: pat</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>
