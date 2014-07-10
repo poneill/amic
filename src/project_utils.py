@@ -1,8 +1,9 @@
 import random
 import bisect
 import itertools
-from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith
+from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith,h,simplex_sample
 from math import exp,factorial,sqrt
+import numpy as np
 import cmath
 import numpy as np
 
@@ -105,6 +106,26 @@ def esp_ref(ks,j):
 def powsum(ps,k):
     return sum(p**k for p in ps)
 
+def powsums_ref(ps,k):
+    return [powsum(ps,i) for i in range(k+1)]
+
+def powsums(ps,k):
+    qs = [1]*len(ps)
+    psums = [sum(qs)]
+    for i in xrange(k):
+        qs = [q*p for (q,p) in zip(qs,ps)]
+        psums.append(sum(qs))
+    return psums
+    
+def powsums_np(ps,k):
+    ps_arr = np.array(ps)
+    qs = np.ones(len(ps))
+    psums = [sum(qs)]
+    for i in xrange(k):
+        qs = qs * ps_arr
+        psums.append(np.sum(qs))
+    return psums
+    
 def esp_ref2(ps,k):
     if k == 0:
         return 1
@@ -113,6 +134,7 @@ def esp_ref2(ps,k):
                    for i in range(1,k+1))/float(k)
 
 def esp(ps,k,powsums=None):
+    print "calling esp(ps,%s)" % k
     if k == 0:
         return 1
     if powsums is None:
@@ -121,19 +143,23 @@ def esp(ps,k,powsums=None):
     return sum((-1)**(i-1)*esp(ps,k-i,powsums)*powsums[i]
                    for i in range(1,k+1))/float(k)
 
+
 def esp_spec(ps,k,powsums=None):
+    #print "calling esp(ps,%s)" % k
     if k == 0:
-        return 1
+       return 1
     if powsums is None:
-        powsums = [0 for i in range(k+1)]
-        qs = [1/p for p in ps]
-        for i in range(k+1):
-            qs = [p*q for p,q in zip(ps,qs)]
-            powsums[i] = sum(qs)
-        print powsums
-        #powsums = [powsum(ps,i) for i in range(k+1)]
-    return sum((-1)**(i-1)*esp_spec(ps,k-i,powsums)*powsums[i]
-                   for i in range(1,k+1))/float(k)
+        print "computing powersums..."
+        powsums = [powsum(ps,i) for i in range(k+1)]
+        print "finished with powersums"
+    esp_array = [None]*(k+1)
+    esp_array[0] = 1
+    for cur_k in range(1,k+1):
+        ans = sum((-1)**(i-1)*esp_array[cur_k-i]*powsums[i]
+                  for i in range(1,cur_k+1))/float(cur_k)
+        esp_array[cur_k] = ans
+        #print esp_array
+    return esp_array[k]
     
 def logfac(n):
     return sum(log(i) for i in range(1,n+1))
@@ -227,3 +253,16 @@ def data_bunch(xs):
 
 def thin(xs,k):
     return xs[::k]
+
+def udist(n):
+    """Return uniform distribution on n outcomes"""
+    return normalize([1]*n)
+
+def hdist(desired_ent,n):
+    """Return distribution on n outcomes with entropy <= h (bits)"""
+    ent = n
+    while(ent > desired_ent):
+        ps = simplex_sample(n)
+        ent = h(ps)
+    return ps
+        

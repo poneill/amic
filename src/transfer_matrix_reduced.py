@@ -2,11 +2,15 @@
 See transfer_matrix.py.  We wish to reduce the dimension of the transfer matrices from 2q+1 to q.
 """
 import numpy as np
+from numpy import linalg
 import sympy
 from sympy.matrices import *
 from project_utils import falling_fac,esp
 from scipy.sparse.linalg import lgmres
-from utils import show,choose
+from utils import show,choose,fac
+from math import exp
+
+beta = 1.0
 
 def lgmres_solve(A,b):
     """Solve Ax = b w/ lgmres"""
@@ -15,6 +19,16 @@ def lgmres_solve(A,b):
         raise Exception("lgmres failed on A=%s,b=%s, info:%s" % (A,b,info))
     return x
 
+def test_pd(M,trials=100):
+    """Test whether M is positive definite"""
+    n = len(M)
+    for i in xrange(trials):
+        v = np.array([random.random()-0.5 for j in range(n)])
+        if v.dot(M).dot(v) < 0:
+            print "FAILED"
+            return
+    print "PASSED with %s trials" % trials
+    
 def transfer_matrix_r(ki,q):
     Wi = np.eye(q+1,dtype=np.float64)
     for j in range(q):
@@ -28,7 +42,7 @@ def log_transfer_matrix_r(ki,q):
     A = [[(-1)**(j+1+i)*a(q-i,j-i)*ki**(j-i) if j > i else 0
           for j in range(q+1)] for i in range(q+1)]
     return np.matrix(A)
-    
+
 def transfer_matrix_prob(ki,q):
     Wi = np.eye(q+1)
     for j in range(q):
@@ -44,6 +58,20 @@ def transfer_matrix_dki(q):
         Wi[(j,j+1)] = (q-j)
     return Wi
 
+def log_transfer_matrix_dki(ki,q):
+    def a(n,k):
+        """See OEIS A111492"""
+        return fac(k-1)*choose(n,k)
+    A = [[(-1)**(j+1+i)*a(q-i,j-i)*(j-i)*ki**(j-i-1) if j > i else 0
+          for j in range(q+1)] for i in range(q+1)]
+    return np.matrix(A)
+
+def test_log_transfer_matrix_dki(ki,q):
+    M = transfer_matrix(7,4)
+    dM = 0 
+    logM = logm(M)
+    pass
+    
 def transfer_matrix_dki_prob(k,q):
     Wi = np.zeros((q+1,q+1))
     for j in range(q):
@@ -202,7 +230,67 @@ def logm(A,n=100):
     I = np.eye(len(A))
     X = A - I
     return sum(linalg.matrix_power(X,i)/float(i)*(-1)**(i+1) for i in range(1,n+1))
+
+def log_property_test():
+    """Verify that log(prod W) = sum(log(W))"""
+    ks = [1,2,3,4]
+    q = 3
+    Zmat = expm(sum(logm(transfer_matrix_r(k,q)) for k in ks))
+    Zmat_ref = reduce(np.dot,[transfer_matrix_r(k,q) for k in ks])
+    return Zmat == Zmat_ref
+
+def log_property_test2():
+    """Verify that log(v0 prod W vf) = v0 sum(log(W)) vf"""
+    G = 10
+    ks = [exp(random.random()) for i in range(G)]
+    q = 3
+    v0 = np.array([1] + [0]*(q))
+    vf = np.array([1]*(q+1))
+    Zmat_ref = reduce(np.dot,[transfer_matrix_r(k,q) for k in ks])
+    Z_ref = v0.dot(Zmat_ref).dot(vf)
+    Zmat = expm(sum(logm(transfer_matrix_r(k,q)) for k in ks))
+    Z = v0.dot(Zmat_ref).dot(vf)
+    print Z,Z_ref
+    return abs(Z - Z_ref) < 10**-10
+
+def log_property_test3():
+    """Verify that log(v0 prod W vf) = v0 sum(log(W)) vf"""
+    G = 10
+    ks = [exp(random.random()) for i in range(G)]
+    q = 3
+    v0 = np.array([1] + [0]*(q))
+    vf = np.array([1]*(q+1))
+    Zmat = sum(logm(transfer_matrix_r(k,q)) for k in ks)
+    logZ = logmv0.dot(Zmat).dot(vf)
+    Zmat_ref = reduce(np.dot,[transfer_matrix_r(k,q) for k in ks])
+    logZ_ref = log(v0.dot(Zmat).dot(vf))
+    print logZ,logZ_ref
+    return abs(logZ - logZ_ref) < 10**-10
+
+def Z(ks,q):
+    v0 = np.array([1] + [0]*(q))
+    vf = np.array([1]*(q+1))
+    return v0.dot(Zmat(ks,q)).dot(vf)
     
+def Zmat(ks,q):
+    return reduce(lambda x,y:x.dot(y),[transfer_matrix_r(k,q) for k in ks])
+
+def log_Zmat(ks,q):
+    return reduce(lambda x,y:x + y,[log_transfer_matrix_r(k,q) for k in ks])
+
+def log_Zmat_ref(ks,q):
+    return log(Zmat(ks,q))
+
+def log_property_test4():
+    """Can we compute occupancies just by taking derivative of Wi?"""
+    pass
+
+def occupancies_speculative(ks,q):
+    v0 = np.array([1] + [0]*(q))
+    vf = np.array([1]*(q+1))
+    return [-1/beta*v0.dot(log_transfer_matrix_dki(k,q)).dot(vf) for k in ks]
+
+
 def occupancies_logtest(ks,q):
     """Compute occupancies by matrix logarithm scheme"""
     Zmat = expm(sum(log_transfer_matrix_r(k,q) for k in ks))
@@ -212,6 +300,10 @@ def occupancies_logtest(ks,q):
     occs = [(v0.dot(Zmat.dot(transfer_matrix_inv(k,q)).dot(transfer_matrix_dki(q))).dot(vf)/Z)[0,0] for k in ks]
     #occs = [((v0.dot(expm(logm(Zmat)-log_transfer_matrix_r(k,q))).dot(transfer_matrix_dki(q))).dot(vf)/Z)[0,0] for k in ks]
     return occs
+
+def occupancies_logtest2(ks,q):
+    v0 = np.array([1] + [0]*(q))
+    vf = np.array([1]*(q+1))
     
 def occ_logtest_troubleshooting():
     q = 20

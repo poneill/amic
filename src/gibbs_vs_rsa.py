@@ -3,8 +3,8 @@ import random
 random.seed("gibbs vs rsa")
 
 def main(filename=None):
-    G = 100
-    ks = ([exp(-random.gauss(0,10)) for i in xrange(G)])
+    G = 1000
+    ks = ([exp(-random.gauss(0,5)) for i in xrange(G)])
     max_k = max(ks)
     q = 10
     

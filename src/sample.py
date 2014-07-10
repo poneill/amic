@@ -41,7 +41,40 @@ def gibbs_sample(ks,xs):
         xs_new[j] = new_pos
     return xs_new
 
-def metropolis(ks,q,verbose=False,mu_offset=0,iterations=50000):
+def gibbs_chain(ks,q,iterations,verbose=False):
+    """Return entire history of gibbs sampling"""
+    xs = [0]*q
+    chain = [xs]
+    for it in xrange(iterations):
+        if verbose:
+            print it
+        xs = gibbs_sample(ks,xs)
+        chain.append(xs)
+    return chain
+
+def metropolis_uniform(ks,q,verbose=False,mu_offset=0,iterations=50000):
+    """Metropolis-Hastings sampling for ks, given uniform proposal function"""
+    G = len(ks)
+    eps = [-log(k) for k in ks]
+    f = lambda mu:sum(fd(ep,mu) for ep in eps) - q
+    mu = bisect_interval(f,-50,50) + mu_offset
+    def weight(ss):
+        return (falling_fac(q,sum(ss))*product(k**s for k,s in zip(ks,ss)))
+    def proposal(ss):
+        on_chr_prob = sum(ss)/float(q)
+        on_chr = random.random() < on_chr_prob
+        ss_new = ss[:]
+        if on_chr:
+            pos = random.choice([i for (i,s) in enumerate(ss) if s])
+            ss_new[pos] = 0
+        new_pos = random.choice([-1] + [i for (i,s) in enumerate(ss) if not s])
+        if new_pos >= 0:
+            ss_new[new_pos] = 1
+        return ss_new
+    x0 = proposal([0] * len(ks))
+    return mh(weight,proposal,x0,verbose=verbose,iterations=iterations)
+    
+def metropolis_pb(ks,q,verbose=False,mu_offset=0,iterations=50000):
     """Metropolis-Hastings sampling for ks, given product-bernoulli proposal function"""
     G = len(ks)
     eps = [-log(k) for k in ks]
@@ -240,7 +273,7 @@ def occs_from_direct_sampling(samples,ks):
             
 
 ncp_dict = {}
-def ncp(ps,n):
+def ncp_deprecated(ps,n):
     """Compute non-collision probability for n draws from distribution
     ps according to """
     def _ncp(ps,n):
@@ -262,7 +295,7 @@ def ncp(ps,n):
         return ncp_dict[n]
     return _ncp(ps,n)
 
-def ncp2(ps,n):
+def ncp(ps,n):
     return fac(n)*esp(ps,n)/1.0
 
 def est_ncp(ps,n,trials,verbose=False):
@@ -280,7 +313,7 @@ def est_ncp(ps,n,trials,verbose=False):
 
 def graph_acceptance_ratio(filename):
     ps = normalize([exp(-random.gauss(0,5)) for i in xrange(5000000)])
-    ars = [show(ncp2(ps,i)) for i in range(10+1)]
+    ars = [show(ncp(ps,i)) for i in range(10+1)]
     plt.plot(ars)
     plt.semilogy()
     plt.xlabel("Copy Number")
@@ -296,3 +329,11 @@ def check_ncp(ps,ns,trials):
     plt.errorbar(ns,est_ncps,yerr=errs)
     plt.show()
     
+def mh_vs_gibbs_experiment():
+    G = 1000
+    ks = [1] + [exp(random.gauss(0,5)) for i in range(G)]
+    q = 10
+    tmax = 10000
+    gibbs_samples = [ss_from_xs(xs,G) for xs in gibbs_chain(ks,q,10000)]
+    mh_samples = [ss_from_xs(xs,G) for xs in metropolis(ks,q,iterations=10000,verbose=False)]
+
