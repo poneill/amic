@@ -1,0 +1,87 @@
+* Introduction
+The purpose of this document is:
+
+    1. to determine a common interface for TF-DNA lattice models, and
+    2. to provide benchmarks for different sampling algorithms.
+
+* Model specification
+** Model inputs
+The fundamental objects of the model are:
+    1. A configuration space, describing the positions of the TFs on the chromosome.
+    2. A Hamiltonian, governing:
+       - Sequence specificity, depending on a circular or linear DNA sequence
+       - Exclusion interactions
+       - Cooperative binding
+       - Copy number
+       - Looping, &c.
+
+** Model Ontology and Representation
+   Here we describe the various kinds of objects that arise in this
+   model space.  
+*** Configurations
+**** Chi-configurations
+     A chi-configuration is a vector of length G, with one component
+     for the left endpoint of each possible binding site, indexed
+     [0,G).  The ith component is either 0 or 1, unbound or bound.  A
+     chi-configuration is not responsible for storing the copy number
+     of the system, if copy number is constant.
+**** Tau-configurations
+     A tau-configuration is a vector of length q, with one component
+     for each TF copy in the system.  The jth component gives the
+     position of the $j$th copy, using the 0-based indexing convention
+     for chi-configurations.  If a copy is unbound, its position is
+     denoted by -1.  [This convention eases interconversion between
+     the configuration spaces, but comes at the cost of breaking
+     backwards compatibility with existing code.  This needs to be
+     fixed.]
+
+*** Outputs
+    The ultimate quantities of interest in this modeling problem are
+    the site occupancies, i.e. the probability that any particular
+    base of DNA is occupied by a TF at equilibrium.  These quantities
+    are naturally represented by a G-length vector with the same
+    semantics as a $\chi$-configuration, except that the components
+    now represent marginal probabilities and take values in [0,1].
+
+    A natural way to estimate the marginal probabilities is to
+    sample many configurations and average them component-wise.
+
+* Benchmarks
+  Here we specify benchmarks for testing the correctness and
+  performance of various algorithms for obtaining the occupancies.
+  Benchmark scenarios should encompass a range of scales and include
+  cases where the analytic distribution is known.  
+
+** Gq model (hardcore repulsion, fixed copy number)
+*** System sizes
+    - Small :: G = 10,q = 1,5
+    - Medium :: G = 10^4, q = 1,100
+    - Large :: G = 5*10^6, q=1,1000
+	      
+*** Homogeneous polymer
+    For a homogeneous polymer with $\epsilon << 1$, the occupancies
+    are all q/G.  For G sites and q << G, the probability of a copy
+    being off-chromosome is roughly
+    $\frac{1}{1+G*exp(-beta*epsilon)}$, implying that if we wish to
+    control the off-chromosome probability for each TF at $\alpha$, we
+    should choose $\epsilon = \frac{\log(\alpha*G/(1-\alpha))}{\beta}$.
+
+*** Heterogeneous polymer
+    Competition between copies for sites is a function of the density
+    $\frac{q}{G}$ but also of the site specificity.  We can quantify
+    this phenomenon in terms of the probability that a configuration
+    drawn through direct sampling will fail, i.e. the probability that
+    out of q copies independently obeying Boltzmann statistics on the
+    chromosome, there will be at least one collision among them.  
+
+    The probability of such a successful draw is just q!e_q(\vec{p}).
+    [See http://arxiv.org/pdf/1404.7694v1.pdf] for more exploration of
+    info theory and esp'ss, where in particular they rigorously
+    establish the intuitively appealing claim that $\frac{\partial
+    H}{\partial e_q} > 0$ for all $q>1$: as entropy goes up, so does
+    the probability of a successful draw.  Note: this only holds if
+    esp's of distribution are taken as independent variables; does not
+    imply that for any two distributions, relationship between $H,e_q$
+    is monotonic.  [It would be nice to have the relationship between
+    H(ps) and ncp(ps,q) = (q!)e_q(ps).  Empirically, it should have a
+    pretty tight bound.]
