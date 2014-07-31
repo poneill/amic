@@ -2,7 +2,7 @@ from utils import inverse_cdf_sample,mean,transpose,mh,bisect_interval,verbose_g
 from mean_field import rstate,dstate,fd
 from project_utils import inverse_cdf_sampler
 from collections import Counter
-from utils import product
+from utils import product,normalize
 from project_utils import powsum,esp
 import time
 
@@ -133,10 +133,16 @@ def gibbs_sample_iterate(ks,xs,iterations):
             xs_new = gibbs_sample(ks,xs_new)
         return xs_new
         
-def ss_from_xs(xs,G):
+def ss_from_xs_ref(xs,G):
     """Project a TF-coordinate vector down into configuration space."""
     return [xs.count(i) for i in range(G+1)]
 
+def ss_from_xs(xs,G):
+    ss = [0]*G
+    for x in xs:
+        ss[x] += 1
+    return ss
+    
 def sequential_sample_many(ks,q,n):
     return map(mean,transpose([sequential_sample_ref(ks,q) for i in verbose_gen(xrange(n))]))
 
@@ -198,6 +204,31 @@ def direct_sampling_ref(ks,q):
         if all(counts[i] <= 1 for i in range(1,G+1) if i > 0):
             return ss
 
+def direct_sampling_ps(ps,q,sampler=None,verbose=False,debug_efficiency=False):
+    """
+    Sample exactly k distinct elements from ps.  Note: ps denote
+elements of a multivariate bernoulli distribution and need not sum to
+    1.
+    """
+    if sampler is None:
+        sampler = make_sampler(ps)
+    iterations = 0
+    while True:
+        if verbose and iterations % 1000 == 0:
+            print iterations
+        iterations +=1
+        ss = [sampler() for j in range(q)]
+        #print "ss:",ss
+        counts = Counter(ss)
+        if all(counts[i] <= 1 for i in counts):
+            efficiency = 1.0/iterations
+            if verbose:
+                print "direct sampling efficiency:",efficiency
+            if debug_efficiency:
+                return efficiency
+            else:
+                return ss
+        
 def direct_sampling(ks,q,sampler=None,verbose=False,debug_efficiency=False):
     """ks is a vector of the form [k0,k1,kg], i.e. off-rate k0 = 1"""
     if sampler is None:

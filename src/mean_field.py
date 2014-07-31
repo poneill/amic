@@ -103,6 +103,13 @@ def occ_dist_poisson(eps,mu):
     print "computing ps"
     return map(exp,log_occ_dist_poisson(eps,mu))
 
+def dpois_binom(ps,k):
+    """Return probability that sum of bernoullis given by ps equals k
+    according to Poisson binomial distribution.  Complexity is O(len(ps)^2)"""
+    n = len(ps)
+    C = cmath.exp(2*1j*pi/(n+1))
+    return (1.0/(n+1)*sum(C**(-ell*k)*product([1+(C**ell-1)*p for p in ps]) for ell in range(n+1))).real
+    
 def log_occ_dist_poisson(eps,mu):
     """Compute probability that occupancy == k, via LeCam's theorem'"""
     print "computing ps"

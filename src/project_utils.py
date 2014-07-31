@@ -150,7 +150,7 @@ def esp_spec(ps,k,powsums=None):
        return 1
     if powsums is None:
         print "computing powersums..."
-        powsums = [powsum(ps,i) for i in range(k+1)]
+        powsums = [powsum(ps,i) for i in verbose_gen(range(k+1))]
         print "finished with powersums"
     esp_array = [None]*(k+1)
     esp_array[0] = 1
@@ -178,9 +178,33 @@ def score_seq(matrix,seq,ns=False):
     else:
         return specific_binding
 
-def sample_average(sample):
+def score_genome(matrix,seq):
+    w = len(matrix)
+    G = len(seq)
+    return [score_seq(matrix,seq[i:i+w]) for i in range(G-w+1)]
+
+def sample_average_ref(sample):
     return map(mean,transpose(sample))
 
+def sample_average(sample):
+    G = len(sample[0])
+    n = float(len(sample))
+    avg = [0]*G
+    for ss in sample:
+        for i,s in enumerate(ss):
+            if s:
+                avg[i] += 1.0/n
+    return avg
+
+def sample_average_from_xss(xss,G):
+    """Return sample average from x-configs"""
+    avg = [0]*G
+    n = float(len(xss))
+    for xs in xss:
+        for x in xs:
+            avg[x] += 1.0/n
+    return avg
+    
 def _dbg(obj,debug):
     if debug:
         print obj
@@ -266,3 +290,6 @@ def hdist(desired_ent,n):
         ent = h(ps)
     return ps
         
+def leps_from_config(config):
+    """From a binary vector of length G representing a configuration, return left endpoints of tfs"""
+    return [i for i,c in enumerate(config) if c]

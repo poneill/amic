@@ -23,13 +23,16 @@ def score_genome(energy_matrix,genome):
     w = len(energy_matrix)
     return [score(energy_matrix,genome[i:i+w]) for i in xrange(L-w+1)]
 
-def update_scores(scores,i,j,dw):
+def update_scores(scores,i,j,dw,genome,w):
     """Suppose scores = score_genome(energy_matrix,genome), and suppose
     the energy_matrix[i][j]+=dw.  Compute the revised scores."""
+    G = len(genome)
     new_scores = scores[:]
     relevant_base = {v:k for (k,v) in base_index.items()}[j]
-    for idx in xrange(L-W+1):
-        if GENOME[idx + i] == relevant_base:
+    for idx in xrange(G-w+1):
+        if genome[idx + i] == relevant_base:
+            # print "base at idx + i: %s is %s" % (idx + i,genome[idx + i])
+            # print "altering score at idx: %s from %s to %s" % (idx,new_scores[idx],new_scores[idx]+dw)
             new_scores[idx] += dw
     return new_scores
 
