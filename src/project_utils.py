@@ -1,11 +1,14 @@
 import random
 import bisect
 import itertools
-from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith,h,simplex_sample
-from math import exp,factorial,sqrt
+from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith,h,simplex_sample,choose,fac
+from math import exp,factorial,sqrt,pi
 import numpy as np
 import cmath
 import numpy as np
+from cumsum import cumsum
+from scipy.special import gammaln
+from time import ctime
 
 def random_site(n):
     """Generate a random sequence of n nucleotides"""
@@ -20,29 +23,52 @@ def inverse_cdf_sample(xs,ps):
         if acc > r:
             return x
 
-def cumsum(xs):
+def cumsum_ref(xs):
+    """Replaced by cython: cumsum.pyx"""
     acc = 0
-    acc_list = []
-    for x in xs:
+    acc_list = [0]*len(xs)
+    for i,x in enumerate(xs):
         acc += x
-        acc_list.append(acc)
+        acc_list[i] = acc
     return acc_list
     
-def inverse_cdf_sampler(xs,ps):
-    """make a bintree for Sampling from discrete distribution ps over set xs"""
-    cum_ps = cumsum(ps)
+def inverse_cdf_sampler(ps):
+    """make a bintree for sampling from discrete distribution ps over set xs"""
+    #cum_ps = cumsum(ps)
+    cum_ps = np.cumsum(ps)
+    total = cum_ps[-1]
     def sampler():
-        r = random.random()
+        r = random.random() * total
         i = bisect.bisect_left(cum_ps,r)
-        return xs[i]
+        return i
     return sampler
 
+def rejection_sampler(ps):
+    N = len(ps)
+    def sampler():
+        while True:
+            i = random.randrange(N)
+            if random.random() < ps[i]:
+                return i
+    return sampler
+
+def alias_sampler(ps):
+    n = len(ps)
+    alias = [0]*n
+    prob = [0]*n
+    T = [n*p for p in ps]
+    for j in range(1,n):
+        pl = indices.pop()
+        g = indices.pop(-1)
+        prob[l] = n*ps[l]
+        alias[l] = g
+        
+    
 def test_inverse_cdf_sampler():
     K = int(5*10**6)
     trials = K
-    xs = range(K)
     ps = [1.0/K for i in xrange(K)]
-    sampler = inverse_cdf_sampler(xs,ps)
+    sampler = inverse_cdf_sampler(ps)
     samples = [sampler() for i in verbose_gen(xrange(trials),modulus=100000)]
     plt.hist(samples,bins=1000)
     plt.show()
@@ -187,6 +213,8 @@ def sample_average_ref(sample):
     return map(mean,transpose(sample))
 
 def sample_average(sample):
+    if type(sample[0]) is np.ndarray:
+        return mean(sample)
     G = len(sample[0])
     n = float(len(sample))
     avg = [0]*G
@@ -293,3 +321,45 @@ def hdist(desired_ent,n):
 def leps_from_config(config):
     """From a binary vector of length G representing a configuration, return left endpoints of tfs"""
     return [i for i,c in enumerate(config) if c]
+
+def np_normalize(arr):
+    return arr/np.sum(arr)
+
+def dbinom(k,N,p):
+    """Compute probability of k out N successes at probability p"""
+    return choose(N,k)*p**k*(1-p)**(N-k)
+
+def log_dbinom(k,N,p):
+    """Compute log probability of k out N successes at probability p"""
+    return log(choose(N,k)) + k*log(p) + (N-k)*log(1-p)
+
+def log_choose(N,k):
+    return log(choose(N,k))
+
+def log_choose_approx(N,k):
+    return k*log(N) - log(fac(k))
+    
+def log_dbinom_approx(k,N,p):
+    """Compute log probability of k out N successes at probability p"""
+    return log_choose_approx(N,k) + k*log(p) + (N-k)*log(1-p)
+
+half_log2_pi = 0.5*log(2*pi)
+
+def log_fac(n):
+    if n <= 1:
+        return 0
+    else:
+        return (n+0.5)*log(n) - n + half_log2_pi #n*log(n) - n + 0.5*log(2*pi*n)
+    # if n < 171:
+    #     return log(fac(n))
+    # else:
+    #     return (n+0.5)*log(n) - n + 0.5*log(2*pi) #n*log(n) - n + 0.5*log(2*pi*n)
+
+def stirling(n):
+    return (n+0.5)*log(n) - n + 0.5*log(2*pi)
+    
+np_log_fac = lambda xs:gammaln(xs+1)#np.vectorize(log_fac)
+
+def timestamp(x):
+    print ctime()
+    return x

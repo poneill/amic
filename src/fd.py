@@ -12,11 +12,16 @@ def fd_solve(koffs,mu,beta=1):
     eps = [log(k)/beta for k in koffs] # note we drop the negative because ks are for OFF-rates
     return [1/(1+exp(beta*(ep-mu))) for ep in eps]
 
-fd_func = np.vectorize(lambda ep:(1.0/(1+exp(beta*(ep-mu)))))
+fd_func = np.vectorize(lambda ep,mu:(1.0/(1+exp((ep-mu)))))
 
-def fd_solve_np(koffs,mu,beta=1):
+def fd_solve_np_ref(eps,mu,beta=1):
     #koffs = np.array(koffs)
-    return fd_func(koffs)
+    return fd_func(eps,mu)
+
+def fd_solve_np(all_eps,mu):
+    fwd_eps,rev_eps = all_eps
+    eps = np.log(np.exp(fwd_eps) + np.exp(fwd_eps))
+    return 1/(1+np.exp(eps-mu))
     
 def rfd_ref(ps):
     return [int(random.random() < p) for p in ps]
@@ -31,7 +36,10 @@ def rfd_xs(ps):
 def rfd_xs_np(ps):
     rs = nprandom.uniform(size=len(ps))
     return np.nonzero(rs < ps)[0]
-        
+
+def rfd_xs_np_spec(ps):
+    pass
+    
 def rbernoulli(p):
     """Sample a bernoulli random variable with mean p using as few bits as
     possible, inverse arithmetic coding"""

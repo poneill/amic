@@ -13,7 +13,7 @@ def sequential_sample_ref(ks,q):
     for tf in range(q):
         #print "new_ks:",new_ks,"q:",q
         Z = float(sum(new_ks))
-        pos = inverse_cdf_sample(range(G+1),[k/Z for k in new_ks])
+        pos = inverse_cdf_sample([k/Z for k in new_ks])
         #print "pos:",pos
         chromosome[pos] += 1
         if chromosome[pos] > 1 and pos < G:
@@ -36,7 +36,7 @@ def gibbs_sample(ks,xs):
         cur_pos = xs_new[j]
         cur_ks = [(k if (i not in xs_new or i == cur_pos) else 0) for i,k in enumerate(ks)] + [1]
         cur_Z = float(sum(cur_ks))
-        sampler = inverse_cdf_sampler(range(G+1),[cur_k/cur_Z for cur_k in cur_ks])
+        sampler = inverse_cdf_sampler([cur_k/cur_Z for cur_k in cur_ks])
         new_pos = sampler()
         xs_new[j] = new_pos
     return xs_new
@@ -114,7 +114,7 @@ def gibbs_sample_fast(ks,xs,iterations,cur_ks=None,cur_Z=None):
             if cur_pos < G:
                 cur_ks[cur_pos] = ks[cur_pos]
                 cur_Z += ks[cur_pos]
-            sampler = inverse_cdf_sampler(range(G+1),[cur_k/cur_Z for cur_k in cur_ks])
+            sampler = inverse_cdf_sampler([cur_k/cur_Z for cur_k in cur_ks])
             new_pos = sampler()
             xs_new[j] = new_pos
             if new_pos < G:
@@ -197,7 +197,7 @@ def direct_sampling_ref(ks,q):
     Z = float(sum(ks))
     G = len(ks)
     ps = [k/Z for k in ks]
-    sampler = inverse_cdf_sampler(range(len(ks)),ps)
+    sampler = inverse_cdf_sampler(ps)
     while True:
         ss = [sampler() for j in range(q)]
         counts = Counter(ss)
@@ -259,7 +259,7 @@ def make_sampler(ks):
     """
     Z = float(sum(ks))
     ps = [k/Z for k in ks]
-    return inverse_cdf_sampler(range(len(ks)),ps)
+    return inverse_cdf_sampler(ps)
 
 def rsa(ks,q,sampler=None,verbose=False,debug_efficiency=False):
     """Perform random sequential adsorption.  Note: Not a method for
@@ -289,7 +289,7 @@ def smart_rsa(ks,q,sampler=None,verbose=False,debug_efficiency=False):
     N = len(ks)
     _ks = ks[:]
     for j in range(q):
-        s = inverse_cdf_sample(range(N),normalize(_ks))
+        s = inverse_cdf_sample(normalize(_ks))
         ss.append(s)
         if s > 0:
             _ks[s] = 0
@@ -337,7 +337,7 @@ def est_ncp(ps,n,trials,verbose=False):
             if trial % verbose == 0:
                 print "%s/%s\r" % (trial,trials),
                 sys.stdout.flush()
-        xs = [inverse_cdf_sample(A,ps) for i in range(n)]
+        xs = [inverse_cdf_sample(ps) for i in range(n)]
         if len(set(xs)) == n:
             accs += 1
     return accs/float(trials)
