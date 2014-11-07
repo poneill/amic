@@ -24,6 +24,7 @@ def inverse_cdf_sample(xs,ps):
         if acc > r:
             return x
 
+<<<<<<< HEAD
 def cumsum_ref(xs):
     """Replaced by cython: cumsum.pyx"""
     acc = 0
@@ -74,6 +75,8 @@ def test_inverse_cdf_sampler():
     plt.hist(samples,bins=1000)
     plt.show()
     
+=======
+>>>>>>> 9c19325da00cd9ec928358c8031b6ad58b95cd8b
 def pprint(xs):
     """Pretty print a nested list"""
     for x in xs:
@@ -115,6 +118,7 @@ def pearsonr(xs,ys):
 def normalize(xs):
     total = float(sum(xs))
     return [x/total for x in xs]
+<<<<<<< HEAD
 
 def scores_to_probs(scores):
     """Compute probabilities from energy scores using Boltzmann statistics"""
@@ -404,3 +408,5 @@ def max_in_window(scores,k):
         max_scores = np.maximum(max_scores,np.roll(scores,j))
     return max_scores
     
+=======
+>>>>>>> 9c19325da00cd9ec928358c8031b6ad58b95cd8b

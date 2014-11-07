@@ -3,6 +3,7 @@ from math import exp
 from energy_matrix import score_genome
 from metropolis_hastings import mh
 
+
 def simulate(energy_matrix,genome,steps):
     """Return genomic position of TF with given energy matrix after given
     number of steps."""

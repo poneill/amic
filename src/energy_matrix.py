@@ -4,7 +4,6 @@ import random
 import numpy as np
 from project_utils import random_site
 from utils import wc
-
 # The 0th row is A, the 1st row is C...
 base_index = dict(zip("ACGT",range(4)))
 
@@ -21,9 +20,6 @@ def rev_comp_matrix(matrix):
     return [row[::-1] for row in matrix[::-1]]
     
 def score_genome_np(energy_matrix,genome,both_strands=True):
-    """Score entire genome, returning a list of delta G's indexed by left
-    endpoint.  If genome is of length L and matrix of width w, binding
-    landscape is of length L-w+1"""
     L = len(genome)
     w = len(energy_matrix)
     ext_genome = genome + genome[:w]

@@ -1,0 +1,203 @@
+% Created 2014-05-09 Fri 08:29
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\providecommand{\alert}[1]{\textbf{#1}}
+
+\title{lab}
+\author{pat}
+\date{\today}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs Org-mode version 7.9.3f}}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+
+\section{Overview}
+\label{sec-1}
+
+  In this lab we'll apply the Metropolis-Hastings algorithm to a
+  synthetic ChIP-Seq dataset in order to recover a model of the
+  DNA-binding domain of our synthetic transcription factor (TF).
+\section{Preliminaries}
+\label{sec-2}
+
+  Download this repository from \texttt{github.com/poneill/xxx}.  Run scripts
+  interactively by typing:
+
+\begin{verbatim}
+ >>> python -i filename.py
+\end{verbatim}
+
+  or open the file in emacs and send the buffer to a python REPL using
+  \texttt{M-x python-shell-send-buffer} (or equivalent).
+\section{\texttt{data.py}}
+\label{sec-3}
+
+Begin by opening the script \texttt{lab.py}.  This is just a convenience file
+that imports data and functions defined in other files.  The script
+first imports the contents of \texttt{data.py}: let's see what's defined
+there.  
+
+Inspect the variable \texttt{TRUE\_ENERGY\_MATRIX}.  You can use the
+pretty-print function (\texttt{pprint}) to display it more clearly.  
+
+What is the width of the site that the true binding model recognizes?
+
+What is the length of the \texttt{GENOME}?
+\section{\texttt{energy\_matrix.py}}
+\label{sec-4}
+
+
+  This file contains some functions related to energy matrices and their use.
+
+  The most important function in this file is \texttt{score}, which computes
+  the score of \texttt{sequence} with respect to an \texttt{energy\_matrix}.  Try
+  computing the scores of various strings under the
+  \texttt{TRUE\_ENERGY\_MATRIX}.  Remember that the scores have dimensions of
+  $\Delta G$, so lower scores represent stronger binding sites.  In
+  our toy model, what is our TF looking for?  Inspect the energy
+  matrix directly or experiment with various strings in order to
+  describe the motif that the TF binds.
+
+  Notice also the function \texttt{score\_genome}, which scores the entire
+  genome at once.  In this toy model, we consider the genome to be
+  linearized, rather than circular, and consider binding only in the
+  5'-3' direction: we neglect the complementary strand.  Define the
+  following variable:
+
+\begin{verbatim}
+ >>> scores = score_genome(TRUE_ENERGY_MATRIX,GENOME)
+\end{verbatim}
+
+  What is the relationship between \texttt{scores} and \texttt{GENOME}?  Draw a
+  diagram that explains this relationship.
+\section{\texttt{metropolis\_hastings.py}}
+\label{sec-5}
+
+
+  This file contains an implementation of the Metropolis-Hastings
+  algorithm, with one crucial simplification.  What is the difference
+  between the implementation given here, and the algorithm described
+  on Wednesday?  (Hint: it is not the \texttt{use\_log} option, which is just a
+  numerical convenience).  How does it restrict our use of the \texttt{mh}
+  function?
+\section{\texttt{simulate\_tf.py}}
+\label{sec-6}
+
+
+  This file contains functions for simulating the behavior of the tf
+  on the chromosome, in two ways.  The first method, \texttt{simulate},
+  reports the position of the TF when simulated via the M-H algorithm.
+
+  If only a single copy of the TF is present within the cell, as we
+  will assume, the occupation probability for a site with binding
+  energy $s_i$ is given by $\frac{exp(-\beta s_i)}{Z}$, where
+  $Z=\sum_i exp(-\beta s_i)$ is the sum of the expression in the
+  numerator over all sites, and we choose units such that $\beta=1$.
+
+  Note that in the inner function \texttt{binding\_probability}, this
+  expression is defined only up to a constant-- the M-H algorithm
+  allows us to neglect the computation of $Z$, which is convenient
+  when the genome is large and there are many possible binding sites.
+\section{\texttt{chip\_seq.py}}
+\label{sec-7}
+
+
+  This file implements the simulation of ChIP-seq datasets.  For as
+  many fragments as desired, we first sample the position of the TF on
+  the chromosome according to its binding distribution.  We then
+  sample the length of the fragment which contains the position where
+  the TF is bound, according to a Poisson distribution with fixed
+  \texttt{MEAN\_FRAGMENT\_LENGTH}.  Finally, we sample the displacement of the
+  left endpoint of the fragment from the binding site, which is
+  uniformly distributed within the fragment.  This is mathematically
+  equivalent to the more physically faithful process of fixing the
+  position of the TF, fragmenting the genome randomly and picking the
+  fragment which contains the bound position, but more efficient.
+\section{\texttt{inference.py}}
+\label{sec-8}
+
+
+  Now we arrive at the central problem: suppose we are given a
+  ChIP-seq dataset, and we wish to make an inference about the binding
+  matrix which gave rise to it.  Formally, we want to sample from the
+  posterior probability P(M|D) over matrices M, given data D.  
+
+  Use Bayes' theorem in order to write P(M|D) in terms of the
+  likelihood P(D|M) and the prior probability P(M):
+
+
+  Now assume the prior P(M) is uniform, and assume a likelihood
+  function of the form given on Wednesday.  Show that, if the
+  likelihood function only interacts with our sampling algorithm
+  through the ratio $\frac{P(D|H_i)}{P(D|H_j)}$, we can simplify the
+  resulting expression.  Rewrite the new likelihood function in its
+  simplified form and explain in your own words what is going on:
+
+  Now we are ready to sample matrices from the posterior distribution
+  P(M|D).  Use the function main as follows:
+
+\begin{verbatim}
+ >>> matrix_chain, fragments = main()
+\end{verbatim}
+
+  The return values are a \texttt{matrix\_chain}, consisting of pairs of
+  matrices and their associated log-likelihood values \texttt{(m,logf(m))},
+  and the set of fragments used to compute the log-likelihood.
+  Compare the resulting log-likelihoods to the log-likelihood of the
+  \texttt{TRUE\_ENERGY\_MATRIX}, which is printed to \texttt{stdout} when \texttt{main} runs.
+  Are they comparable?
+
+
+
+  We saw on Wednesday that the proposal distribution often contains a
+  tuning parameter which controls the correlation between the proposed
+  and current states.  Often, the performance of MCMC algorithms is
+  sensitive to such parameters.  Here, the tuning parameter is
+  \texttt{sigma}, which controls the standard deviation of the Gaussian
+  random variable which is added to a random component of the current
+  energy matrix at each step.  Try varying sigma.  This can be done by
+  typing, e.g.,:
+
+\begin{verbatim}
+ >>> chain(sigma=1)
+\end{verbatim}
+
+  at the REPL.  How does the performance of the algorithm depend on
+  \texttt{sigma}?  What seems to give the fastest approach to
+  high-probability regions of the posterior distribution?  How is the
+  acceptance efficiency affected?
+
+  Find the posterior mode of the chain, that is, the matrix with the
+  highest posterior probability.  This can be done with the following command:
+
+\begin{verbatim}
+ >>> post_mode = max(matrix_chain,key=lambda (m,pm):pm)
+\end{verbatim}
+
+  and examine the matrix visually (you may find \texttt{pprint} helpful again
+  here).  What similarities, if any, do you see between the `best'
+  matrix in the chain and the true energy matrix?  What differences?
+
+\end{document}

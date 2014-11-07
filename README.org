@@ -1,0 +1,10 @@
+At the right hand side of the screen, click on the =HTTPS= button and
+copy the link above.  In a suitable directory, type:
+
+: git clone https://github.com/poneill/biol495_chip_seq_lab.git
+
+: cd biol495_chip_seq_lab
+
+: firefox doc/lab.html
+
+And begin!
