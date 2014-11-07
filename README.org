@@ -3,4 +3,3 @@
   AMIC is a tool for recovering binding energy models from ChIP-Seq
   datasets.  
 
-  More news as events warrant.
