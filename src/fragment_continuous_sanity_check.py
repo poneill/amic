@@ -1,5 +1,5 @@
 import random
-from utils import pairs
+from utils import pairs,concat
 
 def breaks(lamb):
     """break unit stick continuously at rate lambda (i.e. mean frag length = 1/lamb)"""

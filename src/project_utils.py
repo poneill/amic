@@ -8,6 +8,7 @@ import cmath
 import numpy as np
 from cumsum import cumsum
 from scipy.special import gammaln
+from scipy import stats
 from time import ctime
 
 def random_site(n):
@@ -363,3 +364,43 @@ np_log_fac = lambda xs:gammaln(xs+1)#np.vectorize(log_fac)
 def timestamp(x):
     print ctime()
     return x
+
+def exp_model(xs):
+    lamb = 1/mean(xs)
+    return [random.expovariate(lamb) for x in xs]
+
+def pois_model(xs):
+    mu = mean(xs)
+    return stats.poisson.rvs(mu,size=len(xs))
+
+def quantile(xs,q):
+    n = len(xs)
+    ys = sorted(xs)
+    return ys[int(q*n)]
+    
+def iqr(xs):
+    n = len(xs)
+    ys = sorted(xs)
+    q25 = ys[int(0.25*n)]
+    q75 = ys[int(0.75*n)]
+    return q75 - q25
+
+def max_in_window_ref(scores,k):
+    """Return max in window of radius k over circular array of scores"""
+    G = len(scores)
+    max_scores = np.empty(G)
+    for i in verbose_gen(xrange(G),10000):
+        m = None
+        for j in xrange(-k,k+1):
+            if scores[(i+j) % G] > m:
+                m = scores[(i+j) % G]
+        max_scores[i] = m
+    return max_scores
+
+def max_in_window(scores,k):
+    """Return max in window of radius k over circular array of scores"""
+    max_scores = np.copy(scores)
+    for j in verbose_gen(xrange(-k,k+1)):
+        max_scores = np.maximum(max_scores,np.roll(scores,j))
+    return max_scores
+    

@@ -1,8 +1,7 @@
 import random
-from math import exp,log
-from energy_matrix import score_genome,random_energy_matrix
+from math import exp
+from energy_matrix import score_genome
 from metropolis_hastings import mh
-from project_utils import random_site,inverse_cdf_sample,dpois,rpois
 
 def simulate(energy_matrix,genome,steps):
     """Return genomic position of TF with given energy matrix after given

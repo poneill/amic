@@ -2,7 +2,7 @@
 This file implements the Gillespie algorithm for simple chromosomal systems (G,q); no overlap exclusion or interactions
 """
 import random
-from utils import inverse_cdf_sample,normalize,zipWith,mean
+from utils import inverse_cdf_sample,normalize,zipWith
 from math import exp
 import numpy as np
 from project_utils import inverse_cdf_sampler
@@ -220,8 +220,6 @@ def update_spatial(chromosome,qf,koffs,verbose=False):
     # specifically bound copies can transition to non-specific binding
     ep_ns = -7
     k_ns = exp(-beta*ep_ns)
-    ep_slide = 0
-    k_slide = exp(-beta*ep_slide) # 1 obviously
     k1 = 1 # rate for reactions that happen on default simulation timescale
     G = len(chromosome)
     reactions = [(i,'N',qf*k_ns) for i in xrange(G)]
@@ -287,8 +285,6 @@ def update_spatial_xs(q,ns_bound,s_bound,koffs,verbose=False):
     """
     ep_ns = -7
     k_ns = exp(-beta*ep_ns)
-    ep_slide = 0
-    k_slide = exp(-beta*ep_slide) # 1 obviously
     k1 = 1 # rate for reactions that happen on default simulation timescale
     G = len(koffs)
     qf = q - (len(ns_bound) + len(s_bound))
@@ -339,8 +335,6 @@ def update_spatial_xs(q,ns_bound,s_bound,koffs,verbose=False):
 def update_spatial_dict(q,bound,koffs,verbose=False):
     ep_ns = -7
     k_ns = exp(-beta*ep_ns)
-    ep_slide = 0
-    k_slide = exp(-beta*ep_slide) # 1 obviously
     k1 = 1 # rate for reactions that happen on default simulation timescale
     G = len(koffs)
     qf = q - len(bound)
@@ -410,7 +404,6 @@ def sample_path_spatial_ref2(qf,koffs,t_final,chromosome=None,verbose=False):
         G = len(koffs)
         chromosome = [0] * G
     chrom = chromosome[:]
-    new_chrom = chrom[:]
     occupancies = [0 for c in chromosome]
     t = 0
     dt = 0
@@ -431,39 +424,6 @@ def sample_path_spatial_ref2(qf,koffs,t_final,chromosome=None,verbose=False):
         #     occupancies[i] += int(chrom[i] > 0)*dt
         ###
     return [occ/t_final for occ in occupancies]
-
-def sample_path_ref2(qf,koffs,t_final,chromosome=None,verbose=False):
-    """Simulate a sample path until time t_final and return the marginal occupancies.
-    Integrates update, sample_path_ref framework.
-    """
-    if chromosome is None: # then start from empty chromosome
-        chromosome = [0] * G
-    t = 0
-    dt = 0
-    occs = [0 for c in chromosome]
-    while t < t_final:
-        rates = [koffs[i] if bs else qf for i,bs in enumerate(chromosome)]
-        sum_rate = sum(rates)
-        dt = random.expovariate(sum_rate)
-        t += dt
-        if t > t_final:
-            dt = t_final - t + dt
-        # update occupancies after deciding dt, before updating chromosome
-        occs = zipWith(lambda occ,ch:occ + ch*dt,occs,chromosome)
-        idx = inverse_cdf_sample(range(G),normalize(rates))
-        if chromosome[idx]: # if reaction is an unbinding reaction...
-            if verbose:
-                print "unbinding at: ",idx
-            chromosome[idx] = 0
-            qf += 1
-        else: # a binding reaction...
-            if verbose:
-                print "binding at: ",idx
-            chromosome[idx] = 1
-            qf -= 1
-        if verbose:
-            print "t:",t,"dt:",dt,"q:",qf,"qbound:",sum(chromosome),"mean occ:",sum([occ/t for occ in occs])
-    return [occ/t_final for occ in occs]
 
 def convolve(ps,sigma):
     G = len(ps)
