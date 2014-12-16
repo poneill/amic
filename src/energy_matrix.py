@@ -8,10 +8,13 @@ from utils import wc
 # The 0th row is A, the 1st row is C...
 base_index = dict(zip("ACGT",range(4)))
 
-def random_energy_matrix(width,max_val=1):
-    """Return a energy matrix of given width containing entries uniformly
-    distributed in [-max_val,0] """
-    return [[-max_val*random.random() for base in "ACGT"] for i in range(width)]
+def random_energy_matrix(width,sigma=1):
+    """Return a energy matrix of given width containing mean-zero gaussian
+    entries with sd sigma"""
+    return [[random.gauss(0,sigma) for base in "ACGT"] for i in range(width)]
+
+def null_energy_matrix(width):
+    return [[0,0,0,0] for i in range(width)]
 
 def score(energy_matrix,sequence):
     """Compute the score of sequence with energy matrix"""

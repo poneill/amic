@@ -4,29 +4,32 @@ In this script we attempt to recover the binding energy model of ArcA
 
 import sys
 sys.path.append("../data/chip_seq_datasets")
+import random
 from viz_map import read_map, density_from_reads
 from energy_matrix import random_energy_matrix, score_genome_np
 from energy_matrix import update_scores_np
 from chip_seq import reads_from_ps
 from fd import fd_solve_np
-from utils import sample, mh, pprint, make_pssm
+from utils import sample, mh, pprint, make_pssm,random_site
 from utils import wc, sorted_indices, rslice, concat, verbose_gen
-from project_utils import np_normalize, np_log_fac, timestamp
+from project_utils import np_normalize, np_log_fac, timestamp,energy_matrix_recognizing
 import numpy as np
 from math import log
-from fd_inference import capture_state, log_dprop
-from fd_inference import complete_rprop
+from fd_inference import capture_state, log_dprop,MU_SIGMA,MAT_SIGMA
+#from fd_inference import complete_rprop
 from motifs import Escherichia_coli
 import re
 from collections import Counter, defaultdict
 from matplotlib import pyplot as plt
+genome_filename = "/home/pat/amic/data/chip_seq_datasets/ArcA_park_et_al/SRR835423/U00096.2.fna"
 
-genome_filename = "/home/pat/chip_seq_inference/data/chip_seq_datasets/ArcA_park_et_al/SRR835423/U00096.2.fna"
+MU_SIGMA = 1
 
-with open(genome_filename) as f:
-    lines = f.readlines()
-genome = "".join([line.strip() for line in lines[1:]])
-G = len(genome)
+def get_genome():
+    with open(genome_filename) as f:
+        lines = f.readlines()
+    genome = "".join([line.strip() for line in lines[1:]])
+    return genome
 
 def arca_motif_comparison():
     arca_reads = get_arca_reads()
@@ -117,7 +120,7 @@ def gc_bias_test():
     
 def get_arca_reads(N=None):
     """Return N downsampled reads from ArcA dataset"""
-    filename = '/home/pat/chip_seq_inference/data/chip_seq_datasets/ArcA_park_et_al/SRR835423/SRR835423.map'
+    filename = '/home/pat/amic/data/chip_seq_datasets/ArcA_park_et_al/SRR835423/SRR835423.map'
     arca_reads = read_map(filename)
     sampled_arca_reads = sample(N, arca_reads) if N else arca_reads
     sampled_read_fraction = len(sampled_arca_reads)/float(len(arca_reads))
@@ -205,11 +208,12 @@ def plot_state(state, num_reads=100000):
 def infer_arca_energy_model(num_reads=1000000):
     """the whole show: infer the energy model from true reads"""
     true_reads = get_arca_reads(num_reads)
+    genome = get_genome()
     G = len(genome)
     lamb = 1/250.0
     true_rdm = density_from_reads(true_reads, G)
     w = 10
-    init_matrix = random_energy_matrix(w)
+    init_matrix = null_energy_matrix(w)
     init_mu = -20
     init_scores = score_genome_np(init_matrix, genome)
     init_state = ((init_matrix, init_mu), init_scores)
@@ -219,14 +223,16 @@ def infer_arca_energy_model(num_reads=1000000):
     iterations = 50000
     matrix_chain = mh(logf, proposal=rprop, x0=init_state, dprop=log_dprop, 
                       capture_state=capture_state, verbose=verbose, 
-                      use_log=True, iterations=iterations, modulus=100)
+                      use_log=True, iterations=iterations, modulus=100,cache=False)
     return matrix_chain
 
-def infer_synthetic_energy_model(num_reads=100000):
+def infer_synthetic_energy_model(num_reads=1000000):
     """the whole show: infer the energy model from true reads"""
+    genome = random_site(5000000)
     G = len(genome)
-    w = 10
-    true_matrix = [[-2, 0, 0, 0] for _ in range(w)]
+    motif = "ACGTTGCA"
+    w = len(motif)
+    true_matrix = energy_matrix_recognizing(motif)
     true_mu = -20
     true_eps = score_genome_np(true_matrix, genome)
     true_ps = fd_solve_np(true_eps, true_mu)
@@ -235,7 +241,7 @@ def infer_synthetic_energy_model(num_reads=100000):
     true_reads = reads_from_ps(true_ps, MFL, min_seq_len=75, num_reads=num_reads)
     true_rdm = density_from_reads(true_reads, G)
     init_matrix = random_energy_matrix(w)
-    init_mu = -20
+    init_mu = true_mu
     init_scores = score_genome_np(init_matrix, genome)
     init_state = ((init_matrix, init_mu), init_scores)
     logf = lambda state:timestamp(complete_log_likelihood(state, true_rdm, lamb, num_reads=num_reads))
@@ -245,7 +251,7 @@ def infer_synthetic_energy_model(num_reads=100000):
     print "true_ll:", logf(((true_matrix, true_mu), true_eps))
     matrix_chain = mh(logf, proposal=rprop, x0=init_state, dprop=log_dprop, 
                       capture_state=capture_state, verbose=verbose, 
-                      use_log=True, iterations=iterations, modulus=100)
+                      use_log=True, iterations=iterations, modulus=100,cache=False)
     return matrix_chain
 
 def gradient_descent_experiment(true_rdm=None, num_reads=100000):
@@ -344,3 +350,30 @@ def regress_on_read_density():
     results = model.fit()
     print results.summary()
     return results
+
+def complete_rprop(((mat,mu),(fwd_eps,rev_eps)),genome):
+    """Propose a new matrix and new mu, given mat,mu.  Return updated
+    scores for convenience"""
+    pprint(mat)
+    print "mu:",mu
+    w = len(mat)
+    new_mat = [row[:] for row in mat] # make a copy of the matrix
+    new_mu = mu
+    r = random.random()
+    if r < 0.495: # update one weight in weight matrix
+        altered_col = random.randrange(w) # pick a column to alter
+        altered_row = random.randrange(4) # pick a row to alter
+        dw = random.gauss(0,MAT_SIGMA) # add N(0,2) noise
+        new_mat[altered_col][altered_row] += dw
+        new_fwd_eps,new_rev_eps = update_scores_np(fwd_eps,rev_eps,altered_col,altered_row,dw,w,genome)
+    elif r < 0.5: # shift weight matrix
+        print "shifting weight matrix..."
+        if r < 0.4975: # shift forward
+            new_mat = [new_mat[-1]] + new_mat[:-1]
+        else: # shift_backwards
+            new_mat = new_mat[1:] + [new_mat[0]]
+        new_fwd_eps,new_rev_eps = score_genome_np(new_mat,genome)
+    else:
+        new_mu += random.gauss(0,MU_SIGMA)
+        new_fwd_eps,new_rev_eps = fwd_eps,rev_eps # careful about returning copy...?
+    return ((new_mat,new_mu),(new_fwd_eps,new_rev_eps))

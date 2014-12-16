@@ -4,6 +4,7 @@ Functions for generating chip seq datasets
 import random
 from project_utils import *
 #from simulate_tf import theoretical_probabilities
+from sample_configs import inverse_cdf_sampler_fast
 from utils import verbose_gen,pairs,concat,choose,choose2,mh
 import numpy as np
 from numpy import random as nprand
@@ -131,39 +132,56 @@ def density_from_ps(ps,mfl,min_seq_len,num_reads):
     """
     G = len(ps)
     lamb = 1.0/mfl
-    fwd_map = np.zeros(G)
-    rev_map = np.zeros(G)
+    fwd_delta = np.zeros(G)
+    rev_delta = np.zeros(G)
     reads_so_far = 0
     sampler = inverse_cdf_sampler(ps)
-    problematic_reads = 0
+    fwd_wraps = 0
+    rev_wraps = 0
+    rejections = 0
     while reads_so_far < num_reads:
         L,R = nprand.geometric(lamb),nprand.geometric(lamb) #can be optimized to gamma(2,lamb)
         if L + R < min_seq_len:
+            rejections += 1
             continue
         reads_so_far += 1
         i = sampler()
         start,stop = (i - L) % G, (i + R)%G
-        if random.random() < 0.5:
-            strand = "+"
+        if random.random() < 0.5: # if fwd strand
             stop = (start + min_seq_len) % G
+            fwd_delta[start] += 1
+            fwd_delta[stop] -= 1
+            if start > stop:
+                fwd_wraps += 1
         else:
-            strand = "-"
             start = (stop - min_seq_len) % G
-        if start < stop: #i.e. if read doesn't wrap around
-            if strand == "+":
-                fwd_map[start:stop] += 1
-            else:
-                rev_map[start:stop] += 1
-        else:
-            problematic_reads += 1
-            if strand == "+":
-                fwd_map[start:G] += 1
-                fwd_map[0:stop] += 1
-            else:
-                rev_map[start:G] += 1
-                rev_map[0:stop] += 1
-    print "problematic reads:",problematic_reads
-    return fwd_map,rev_map
+            rev_delta[start] += 1
+            rev_delta[stop] -= 1
+            if start > stop:
+                rev_wraps += 1
+    print "rejections:",rejections
+    return np.cumsum(fwd_delta)+fwd_wraps,np.cumsum(rev_delta)+rev_wraps
+        # if random.random() < 0.5:
+        #     strand = "+"
+        #     stop = (start + min_seq_len) % G
+        # else:
+        #     strand = "-"
+        #     start = (stop - min_seq_len) % G
+        # if start < stop: #i.e. if read doesn't wrap around
+        #     if strand == "+":
+        #         fwd_map[start:stop] += 1
+        #     else:
+        #         rev_map[start:stop] += 1
+        # else:
+        #     problematic_reads += 1
+        #     if strand == "+":
+        #         fwd_map[start:G] += 1
+        #         fwd_map[0:stop] += 1
+        #     else:
+        #         rev_map[start:G] += 1
+        #         rev_map[0:stop] += 1
+    # print "problematic reads:",problematic_reads
+    # return fwd_map,rev_map
             
 def chip_ps_const_frag_length_ref(ps,mean_frag_length,cells=10000,verbose=False):
     G = len(ps)

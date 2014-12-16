@@ -32,8 +32,8 @@ def alias_sampler(_ps):
     ln = len(large)
     #while np.any(small) and np.any(large):
     while sidx < len(small) and lidx < len(large):
-        # l = small.pop()
-        # g = large.pop()
+        l = small.pop()
+        g = large.pop()
         s = small[sidx]
         l = large[lidx]
         pl = ps[l]

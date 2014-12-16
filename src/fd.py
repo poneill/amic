@@ -22,7 +22,13 @@ def fd_solve_np(all_eps,mu):
     fwd_eps,rev_eps = all_eps
     eps = np.log(np.exp(fwd_eps) + np.exp(fwd_eps))
     return 1/(1+np.exp(eps-mu))
-    
+
+def fd_solve_ss(eps,mu):
+    """Solve FD distribution for 'single_sided epsilons'.  That is, assume
+    that binding at base i is encapsulated by eps[i], taking into account
+    fwd, rev and ns binding.
+    """
+    return 1/(1+np.exp(eps-mu))
 def rfd_ref(ps):
     return [int(random.random() < p) for p in ps]
 

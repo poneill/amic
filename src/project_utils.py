@@ -1,14 +1,14 @@
 import random
 import bisect
 import itertools
-from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith,h,simplex_sample,choose,fac
+from utils import rslice,product,verbose_gen,fac,log,mean,transpose,zipWith,h,simplex_sample,choose,fac,sliding_window
 from math import exp,factorial,sqrt,pi
 import numpy as np
 import cmath
 import numpy as np
 from cumsum import cumsum
 from scipy.special import gammaln
-from scipy import stats
+from scipy import stats, polyfit, poly1d
 from time import ctime
 
 def random_site(n):
@@ -404,3 +404,37 @@ def max_in_window(scores,k):
         max_scores = np.maximum(max_scores,np.roll(scores,j))
     return max_scores
     
+def subst(xs,ys,i):
+    return xs[:i] + ys + xs[i+len(ys):]
+
+def unsum(xs):
+    """undo cumsum"""
+    last_elem = xs[-1]
+    return (xs - np.roll(xs,1)) + np.array([last_elem]+[0]*(len(xs)-1))
+
+def psfm_from_energy_matrix(matrix):
+    return [[exp(-x)/sum(exp(-xp) for xp in row) for x in row]
+            for row in matrix]
+
+def sample_psfm(psfm):
+    bases = "ACGT"
+    return "".join([bases[inverse_cdf_sample(range(4),row)] for row in psfm])
+
+def energy_matrix_recognizing(motif):
+    def base_to_row(b):
+        return [-2*(b==c) for c in "ACGT"]
+    return [base_to_row(b) for b in motif]
+
+def sample_mat(mat,n):
+    psfm = psfm_from_energy_matrix(mat)
+    return [sample_psfm(psfm) for i in xrange(n)]
+
+def mat_ic(mat):
+    psfm = psfm_from_energy_matrix(mat)
+    return sum(2-h(col) for col in psfm)
+
+def overlay_local_fit(lls,n):
+    for js in sliding_window(range(len(lls)),n):
+        f = poly1d(polyfit(js,rslice(lls,js),1))
+        plt.plot(*pl(f,js))
+        
